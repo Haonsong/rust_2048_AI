@@ -1,0 +1,7 @@
+[package]
+name = "2048_ai"
+version = "0.1.0"
+authors = ["Adrien Champion <adrien.champion@mail.com>"]
+
+[dependencies]
+lib_2048 = { git = "https://bitbucket.org/AdrienChampion/rust_2048.git", rev = "9829483" }
