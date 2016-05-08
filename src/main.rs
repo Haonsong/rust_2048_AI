@@ -9,6 +9,8 @@ use lib_2048::clap ;
 use lib_2048::Grid ;
 use lib_2048::Cell;
 
+use std::thread::spawn ;
+use std::sync::mpsc::channel ;
 
 fn max_of_vec(score_board:Vec<usize>) -> (usize,usize){
   let mut index = 0usize;
@@ -195,7 +197,7 @@ fn scoring(grid: & Grid)-> usize{
   // let mut same_cell = 0usize;
   // let mut max_cell = 0usize;
   // let mut large_edge = 0usize;
-  empty_row_col * max_cell/10 + small_diff/10 +  large_edge + same_cell/2  + grid.get_free().len()  * max_cell /4 + max_near
+  empty_row_col * max_cell/10 + small_diff/10 +  large_edge + same_cell + grid.get_free().len()  * max_cell /8 + max_near
 }
 
 fn minmax (grid: & Grid,  depth: usize)-> usize{
@@ -248,6 +250,7 @@ fn minmax (grid: & Grid,  depth: usize)-> usize{
 
 /// helper function for minimax
 fn next_movement(grid:& Grid ) -> Vec<usize>{
+  let (sender, receiver) = channel();
   let mut score_board = vec![2000,2000,2000,2000] ;
   let mut skip_board = vec![false,false,false,false] ;
   let mut next_grid = vec![
@@ -272,18 +275,36 @@ fn next_movement(grid:& Grid ) -> Vec<usize>{
     Evolution::Nothing => skip_board[3] = true,
     _ =>{},
   };
-
+  let mut new_thread_amount = 0usize;
   for i in 0..score_board.len(){
-    if skip_board[i] {
-      score_board[i] = 0;
-    }else{
-      score_board[i] = minmax (& next_grid[i],4);
+  if skip_board[i] {
+    score_board[i] = 0;
+  }else{
+    let newboard = next_grid[i].clone();
+    let new_thread = sender.clone();
+    spawn(move||{
+      new_thread.send((i,minmax(& newboard ,7)))
+    });
+    new_thread_amount+=1;
+  }
+}
+for _ in 0..new_thread_amount{
+  match receiver.recv() {
+    Ok((direction,score)) =>{
+      score_board[direction] = score;
+    },
+    Err(_) => {
+      println!("ERROR: multithread failed");
+      break;
     }
   }
+
+}
+
   score_board
 }
 
-/// Dumb AI that tries to go up, then left, then right, then down.
+
 fn ai_move(frame: & mut Frame) -> Evolution {
   use std::process::exit;
   let ref grid_copy =frame.grid().clone();
