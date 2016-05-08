@@ -21,12 +21,6 @@ fn max_of_vec(score_board:Vec<usize>) -> (usize,usize){
 }
 
 /// Sleeps for some time (in ms).
-fn sleep(ms: u64) {
-  use std::thread::sleep ;
-  use std::time::Duration ;
-  sleep(Duration::from_millis(ms)) ;
-}
-
 fn get_val_of_cell(cell:Option<Cell>)->usize{
   match cell{
     Some(cell)=> cell.val(),
@@ -201,18 +195,16 @@ fn scoring(grid: & Grid)-> usize{
   // let mut same_cell = 0usize;
   // let mut max_cell = 0usize;
   // let mut large_edge = 0usize;
-  empty_row_col * max_cell/4 + small_diff/10 +  large_edge + same_cell  + grid.get_free().len()  * max_cell /4 + max_near
+  empty_row_col * max_cell/10 + small_diff/10 +  large_edge + same_cell/2  + grid.get_free().len()  * max_cell /4 + max_near
 }
 
-fn minmax (grid: & Grid,  depth: usize, rand_turn: bool)-> usize{
+fn minmax (grid: & Grid,  depth: usize)-> usize{
   let ref mut grid_copy = grid.clone();
-  //insert_cell(&mut self, row: usize, col: usize, pow: u32) -> Option<Cell>
-  //get_free(&self) -> Vec<(usize, usize)>
+  if grid_copy.spawn(){
     if depth == 0 {
       //println!("scoring" );
       scoring(grid_copy)
     }else{
-     if !rand_turn {
       let mut score_board = vec![2000,2000,2000,2000] ;
       let mut skip_board = vec![false,false,false,false] ;
       let mut next_grid = vec![
@@ -241,27 +233,16 @@ fn minmax (grid: & Grid,  depth: usize, rand_turn: bool)-> usize{
         if skip_board[i] {
           score_board[i] = 0;
         }else{
-          score_board[i] = minmax (& next_grid[i],depth - 1,true);
+          score_board[i] = minmax (& next_grid[i],depth - 1);
         }
       }
-      //println!("I am in 4 -- direction turn depth {}", depth );
+
       match max_of_vec(score_board){
         (_,score) => score,
       }
-    }else{
-      let mut exp_score = 2000  * grid.get_free().len();
-      for position in grid.get_free(){
-        let (row,col) = position;
-        let ref mut grid_new_2 = grid_copy.clone();
-        let ref mut grid_new_4 = grid_copy.clone();
-        grid_new_2.insert_cell(row,col,1);
-        grid_new_4.insert_cell(row,col,2);
-        exp_score += (0.8 * (minmax(grid_new_2,depth,false) as f64)) as usize;
-        exp_score += (0.2 * (minmax(grid_new_4,depth,false) as f64)) as usize;
-      }
-      //println!("I am in rand_turn depth: {}", depth );
-      exp_score / grid.get_free().len()
     }
+  }else{
+    0usize
   }
 }
 
@@ -296,7 +277,7 @@ fn next_movement(grid:& Grid ) -> Vec<usize>{
     if skip_board[i] {
       score_board[i] = 0;
     }else{
-      score_board[i] = minmax (& next_grid[i],3,true);
+      score_board[i] = minmax (& next_grid[i],4);
     }
   }
   score_board
@@ -307,41 +288,41 @@ fn ai_move(frame: & mut Frame) -> Evolution {
   use std::process::exit;
   let ref grid_copy =frame.grid().clone();
   match max_of_vec(next_movement(grid_copy)) {
-     (0,score) => {
+     (0,_) => {
        match frame.up(){
          Evolution::Nothing => {
            println!("I lost T_T") ;
-           println!("score: {}",score) ;
+           //println!("score: {}",score) ;
            exit(0)
          },
          evol => evol,
        }
      },
-     (1,score) => {
+     (1,_) => {
        match frame.down(){
          Evolution::Nothing => {
            println!("I lost T_T") ;
-           println!("score: {}",score) ;
+           //println!("score: {}",score) ;
            exit(0)
          },
          evol => evol,
        }
      },
-     (2,score) => {
+     (2,_) => {
        match frame.left(){
          Evolution::Nothing => {
            println!("I lost T_T") ;
-           println!("score: {}",score) ;
+           //println!("score: {}",score) ;
            exit(0)
          },
          evol => evol,
        }
      },
-     (3,score) => {
+     (3,_) => {
        match frame.right(){
          Evolution::Nothing => {
            println!("I lost T_T") ;
-           println!("score: {}",score) ;
+           //println!("score: {}",score) ;
            exit(0)
          },
          evol => evol,
