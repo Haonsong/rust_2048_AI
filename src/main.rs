@@ -11,7 +11,11 @@ use lib_2048::Cell;
 
 use std::thread::spawn ;
 use std::sync::mpsc::channel ;
-
+/*
+Here is the funtion for find the max of the vector
+input is Vec<usize>
+output is (usize,usize) which is index,maximum
+*/
 fn max_of_vec(score_board:Vec<usize>) -> (usize,usize){
   let mut index = 0usize;
   for i in 0..score_board.len(){
@@ -22,7 +26,11 @@ fn max_of_vec(score_board:Vec<usize>) -> (usize,usize){
   (index,score_board[index])
 }
 
-/// Sleeps for some time (in ms).
+/**
+Unwrap the Cell of option type
+input Option<Cell>
+output usize
+*/
 fn get_val_of_cell(cell:Option<Cell>)->usize{
   match cell{
     Some(cell)=> cell.val(),
@@ -30,6 +38,12 @@ fn get_val_of_cell(cell:Option<Cell>)->usize{
   }
 }
 
+
+/**
+Function to grade the grid
+input the ref to Grid
+output the usize score of board
+*/
 fn scoring(grid: & Grid)-> usize{
   //println!("in scoring") ;
   //let mut score =  0usize;
@@ -185,21 +199,15 @@ fn scoring(grid: & Grid)-> usize{
     }
   }
 
-
-
-
-
-
-  //counters
-  // let mut empty_row_col =  0usize;
-  // scores based on title
-  // let mut small_diff = 0usize;
-  // let mut same_cell = 0usize;
-  // let mut max_cell = 0usize;
-  // let mut large_edge = 0usize;
   empty_row_col * max_cell/10 + small_diff/10 +  large_edge + same_cell + grid.get_free().len()  * max_cell /8 + max_near
 }
 
+/**
+The recusively called minmax function
+input ref of grid
+      Depth of search
+output usize score
+*/
 fn minmax (grid: & Grid,  depth: usize)-> usize{
   let ref mut grid_copy = grid.clone();
   if grid_copy.spawn(){
@@ -248,7 +256,12 @@ fn minmax (grid: & Grid,  depth: usize)-> usize{
   }
 }
 
-/// helper function for minimax
+
+/**
+helper function for minimax
+input ref of grid
+output Vec<usize> which is the score_board
+*/
 fn next_movement(grid:& Grid ) -> Vec<usize>{
   let (sender, receiver) = channel();
   let mut score_board = vec![2000,2000,2000,2000] ;
@@ -259,6 +272,7 @@ fn next_movement(grid:& Grid ) -> Vec<usize>{
   grid.clone(),
   grid.clone() ] ;
 
+  // test the grid is worth to be search or not
   match next_grid[0].up(){
     Evolution::Nothing => skip_board[0] = true,
     _ =>{},
@@ -275,6 +289,9 @@ fn next_movement(grid:& Grid ) -> Vec<usize>{
     Evolution::Nothing => skip_board[3] = true,
     _ =>{},
   };
+
+
+  // Clone the sender of channel to and execute each direction with its own thread
   let mut new_thread_amount = 0usize;
   for i in 0..score_board.len(){
   if skip_board[i] {
@@ -283,11 +300,13 @@ fn next_movement(grid:& Grid ) -> Vec<usize>{
     let newboard = next_grid[i].clone();
     let new_thread = sender.clone();
     spawn(move||{
-      new_thread.send((i,minmax(& newboard ,7)))
+      new_thread.send((i,minmax(& newboard ,6)))
     });
     new_thread_amount+=1;
   }
 }
+
+//here recieving the multithread data.
 for _ in 0..new_thread_amount{
   match receiver.recv() {
     Ok((direction,score)) =>{
@@ -304,6 +323,11 @@ for _ in 0..new_thread_amount{
   score_board
 }
 
+/**
+Actual ai_player here
+input the frame of current game
+output Evolution which is the result of moving
+*/
 
 fn ai_move(frame: & mut Frame) -> Evolution {
   use std::process::exit;
