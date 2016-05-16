@@ -9,26 +9,56 @@ Artifact:
 
 > Final milestone given in Intermediate report is get 2048 most time.
 
-> - What I have got is get 2^14 = 16384 most time and gain score over 20K ~ 30K in 5 minutes with multiple thread and searching depth of 6. (Cheating AI)
+> - Using Multi-thread to accelerate the searching speed.
+> - What I have got is get 2^14 = 16384 most time and gain score over 20K ~ 30K in 5 minutes with searching depth of 6. (Cheating AI)
 > - Get the 2048 for most time as a non-cheating AI,__**VERY**__ slow, may need 30 minutes.
 
 ## Accomplishments
 
 > Genericity
 * The gird in Vec < Vec < Option< Cell > > >
-  * Vec of Vec of Option of Cell type
-  * Vec of Option of Cell type
-  * Option of Cell type
+  * Vec for Vec
+  * Vec for Option
+  * Option for Cell
 
 > First-class functions
 * The `randloop` function is passing the `ai_move` function as a parameter.
 
 > Algorithms
   * minimax for cheating AI
+  ```
+  function minimax(node, depth)
+      if node is a terminal node or depth = 0
+          return the value of node
+      else
+          // Return value of maximum-valued child node
+          let α := -∞
+          for each child of node
+              α := max(α, minimax(child, depth-1))
+      return α
+  ```
   * Expectminimax for non-cheating AI
+  ```
+  function expectiminimax(node, depth)
+      if node is a terminal node or depth = 0
+          return the value of node
+      else
+        if not random turn
+          // Return value of maximum-valued child node
+          let α := -∞
+          for each child of node
+              α := max(α, expectiminimax(child, depth-1))
+        else
+              // Return weighted average of all child nodes' values
+              let α := 0
+              for each child of node
+                  α := α + (Probability[child] * expectiminimax(child, depth-1))
+      return α
+  ```
 
 > Recursive functions
-  * minmax function will Recursively call itself to match the depth as given.
+  * minimax function will Recursively call itself to match the depth as given.(as shown above)
+
 
 > Multi-thread:
   * The AI is using Multi-thread to speed up
@@ -46,9 +76,15 @@ Artifact:
 
 > Since the Windows command line is not working at first, so I decided to move to linux (Arch Linux).
 
-> Get the linux installed on real machine(Really hard).
+> - Get the linux installed on real machine(Really hard).
+  - Install drivers
+  - Install DM and WM
 
-> Install & run the rustc & cargo on Linux machine(Pretty easy).
+
+> - Install & run the rustc & cargo on Linux machine(Pretty easy).
+  - install the developer tools, like gcc
+  - make the installable package from rust source code
+  - In my case, I use the `pacman` to install the package
 
 ## Challenges
 
